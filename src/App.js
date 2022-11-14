@@ -6,6 +6,7 @@ function Header(props) {
       <h1><a href="/">{props.title}</a></h1>
     </header>
   );
+}
 
 function Nav(props) {
   const lis = [];
