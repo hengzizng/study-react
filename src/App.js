@@ -178,16 +178,36 @@ function App() {
       }
     }
     content = <Article title={title} body={body}></Article>;
-    contextControl = <li>
-      <a
-        href={"/update/" + id}
-        onClick={event => {
-          event.preventDefault();
-          setMode('UPDATE');
-        }}>
-        Update
-      </a>
-    </li>;
+    // 겉에 비어있는 태그 (<> </>) 로 감싸면 복수의 태그를 그룹핑하는 용도
+    contextControl =
+    <>
+      <li>
+        <a
+          href={"/update/" + id}
+          onClick={event => {
+            event.preventDefault();
+            setMode('UPDATE');
+          }}>
+          Update
+        </a>
+      </li>
+      <li>
+        <input
+          type="button"
+          value="Delete"
+          onClick={() => {
+            const newTopics = [];
+            for (let i = 0; i < topics.length; i++) {
+              if (topics[i].id !== id) {
+                newTopics.push(topics[i]);
+              }
+            }
+            setTopics(newTopics);
+            setMode('WELCOME');
+          }}
+        />
+      </li>
+    </>;
   } else if (mode === 'CREATE') {
     content = <Create
       // 사용자가 create 버튼을 눌렀을 때 실행되는 함수를 Create 컴포넌트에 props로 전달
