@@ -6,7 +6,7 @@ function Header(props) {
     <header>
       <h1>
         <a
-          href="/"
+          href="/ff"
           // (event) => {}  =  function (event) {}
           onClick={(event) => {
             // 원래 a 태그의 동작을 방지 (reload 방지)
@@ -84,6 +84,54 @@ function Create(props) {
   );
 }
 
+function Update(props) {
+  const [title, setTitle] = useState(props.title);
+  const [body, setBody] = useState(props.body);
+
+  return (
+    <article>
+      <h2>Update</h2>
+      <form onSubmit={event => {
+        // form 태그의 onSubmit : submit 버튼을 클릭했을 때 form 태그에서 발생하는 이벤트
+        // form 태그는 submit을 했을 때 reload 되기 때문에 막아줌
+        event.preventDefault();
+        // 여기서 event.target : form 태그 (event를 발생시킨 태그)
+        // event.target.title : form 태그 안의 name이 title인 태그
+        const title = event.target.title.value;
+        const body = event.target.body.value;
+        // 상위 컴포넌트(App)의 onUpdate 함수를 실행시킴
+        props.onUpdate(title, body);
+      }}>
+        <p>
+          <input
+            type="text"
+            name="title"
+            placeholder="title"
+            value={title}
+            onChange={event => {
+              setTitle(event.target.value);
+            }}
+          />
+        </p>
+        <p>
+          <textarea
+            name="body"
+            placeholder="body"
+            value={body}
+            onChange={event => {
+              setBody(event.target.value);
+            }}
+          >
+          </textarea>
+        </p>
+        <p>
+          <input type="submit" value="Update" />
+        </p>
+      </form>
+    </article>
+  );
+}
+
 function App() {
   // state의 값이 하나라도 바뀌면 App 컴포넌트가 다시 실행됨
   // useState('WELCOME') 은 배열을 return
@@ -114,6 +162,9 @@ function App() {
   ]);
 
   let content = null;
+  // 맥락적으로 노출되는 UI (상세 항목을 눌렀을 때만 Update 노출)
+  let contextControl = null;
+
   if (mode === 'WELCOME') {
     content = <Article title="Welcome" body="Hello, WEB"></Article>;
   } else if (mode === 'READ') {
@@ -127,6 +178,16 @@ function App() {
       }
     }
     content = <Article title={title} body={body}></Article>;
+    contextControl = <li>
+      <a
+        href={"/update/" + id}
+        onClick={event => {
+          event.preventDefault();
+          setMode('UPDATE');
+        }}>
+        Update
+      </a>
+    </li>;
   } else if (mode === 'CREATE') {
     content = <Create
       // 사용자가 create 버튼을 눌렀을 때 실행되는 함수를 Create 컴포넌트에 props로 전달
@@ -152,6 +213,31 @@ function App() {
         setNextId(nextId + 1);
       }}
     ></Create>
+  } else if (mode === 'UPDATE') {
+    let title, body = null;
+    for (let i = 0; i < topics.length; i++) {
+      // === 로 두 값을 비교할 때에는 데이터 타입도 고려해야 함
+      if (topics[i].id === id) {
+        title = topics[i].title;
+        body = topics[i].body;
+      }
+    }
+    content = <Update
+      title={title}
+      body={body}
+      onUpdate={(title, body) => {
+        const newTopics = [...topics];
+        const updatedTopic = { id : id, title : title, body : body };
+        for (let i = 0; i < newTopics.length; i++) {
+          if (newTopics[i].id === id) {
+            newTopics[i] = updatedTopic;
+            break;
+          }
+        }
+        setTopics(newTopics);
+        setMode('READ');
+      }}>
+    </Update>
   }
 
   return (
@@ -175,11 +261,16 @@ function App() {
       >
       </Nav>
       {content}
-      <a href="/create" onClick={event => {
-        // a 태그의 기본 동작(reload)을 막음 -> url이 바뀌지 않음
-        event.preventDefault();
-        setMode('CREATE');
-      }}>Create</a>
+      <ul>
+        <li>
+          <a href="/create" onClick={event => {
+            // a 태그의 기본 동작(reload)을 막음 -> url이 바뀌지 않음
+            event.preventDefault();
+            setMode('CREATE');
+          }}>Create</a>
+        </li>
+        {contextControl}
+      </ul>
     </div>
   );
 }
